@@ -8,13 +8,12 @@ socialGraph::socialGraph(/* args */)
 
 socialGraph::~socialGraph()
 {
-    size_t userListGrSize = this->userListGr.size();
+    size_t userListGrSize = this->adjacencyLists.size();
     for (size_t i = 0; i < userListGrSize; i++)
     {
-       delete this->userListGr[i];                      //удалили всех пользователей из соц сети
+       delete this->adjacencyLists[i].first;                      //удалили всех пользователей из соц сети
     }
-    this->userListGr.clear();                           // очистили все данные
-    this->matrixSm.clear();                             // очистили все данные
+    this->adjacencyLists.clear();                           // очистили все данные
 }
 
 // Добавление юзеров в граф (регистрация)
