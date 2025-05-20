@@ -25,6 +25,7 @@ endif()
 add_executable(SocialGr 
 src/main.cpp
 src/user.cpp 
+src/queue.cpp
 )
 
 # Подключить заголовки из include/

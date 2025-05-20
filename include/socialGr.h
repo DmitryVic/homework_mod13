@@ -11,8 +11,12 @@ private:
 public:
     socialGraph(/* args */);
     ~socialGraph();
-    bool regUser(User* user);                       // Добавление юзеров в граф (регистрация)
-
+     // Добавление юзеров в граф (регистрация)
+    bool regUser(User* user);
+    // добавить двух пользователей
+    bool addFriend(User* user1, User* user2);
+    // Пользователи друзья ?
+    bool TwoUserItsFriend(User* user1, User* user2);
 };
 
 
