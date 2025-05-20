@@ -7,7 +7,7 @@
 class socialGraph
 {
 private:
-    std::vector<std::pair<User*, std::vector<User*>>> adjacencyLists;       // Матрица смежности графа юзеров
+    std::vector<std::pair<User*, std::vector<User*>>> adjacencyLists;       // спискоr смежности в графе
 public:
     socialGraph(/* args */);
     ~socialGraph();
@@ -17,6 +17,9 @@ public:
     bool addFriend(User* user1, User* user2);
     // Пользователи друзья ?
     bool TwoUserItsFriend(User* user1, User* user2);
+
+    //основной метод домашнего задания - поиск в ширину -> вывод всех пар со знакомством по рукопожатию 3
+    void friendBFS_Gr();
 };
 
 

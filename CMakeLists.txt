@@ -26,6 +26,7 @@ add_executable(SocialGr
 src/main.cpp
 src/user.cpp 
 src/queue.cpp
+src/socialGr.cpp
 )
 
 # Подключить заголовки из include/
