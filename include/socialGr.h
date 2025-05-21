@@ -13,10 +13,16 @@ public:
     ~socialGraph();
      // Добавление юзеров в граф (регистрация)
     bool regUser(User* user);
-    // добавить двух пользователей
+    // Дружба между юзерами
     bool addFriend(User* user1, User* user2);
     // Пользователи друзья ?
     bool TwoUserItsFriend(User* user1, User* user2);
+
+    // предоставить пользователя по ID (уникальное значение)
+    User* getUserForID(unsigned int ID);
+
+    // предоставить  список друзей
+    std::vector<User*> getUserFriends(User* user);
 
     //основной метод домашнего задания - поиск в ширину -> вывод всех пар со знакомством по рукопожатию 3
     void friendBFS_Gr();

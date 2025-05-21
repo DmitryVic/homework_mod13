@@ -5,7 +5,7 @@ class User{
     private:
     std::string _name;
 
-    unsigned int _id;
+    unsigned int _id = 0;
 
     public:
     User(std::string name);

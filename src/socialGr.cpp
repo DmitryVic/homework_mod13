@@ -3,9 +3,11 @@
 #include "user.h"
 #include "queue.h"
 
+
 socialGraph::socialGraph(/* args */)
 {
 }
+
 
 socialGraph::~socialGraph()
 {
@@ -17,11 +19,13 @@ socialGraph::~socialGraph()
     this->adjacencyLists.clear();                                 // очистили все данные
 }
 
+
 // Добавление юзеров в граф (регистрация)
 bool socialGraph::regUser(User* user){
     this->adjacencyLists.push_back({user, {}});
     return true;
 }
+
 
 bool socialGraph::addFriend(User* user1, User* user2){
     if (TwoUserItsFriend(user1, user2))
@@ -48,6 +52,21 @@ bool socialGraph::addFriend(User* user1, User* user2){
     return true;
 }
 
+
+User* socialGraph::getUserForID(unsigned int ID){
+    if (this->adjacencyLists.size() == 0){
+    std::cout << "Пользователь не существует" << std::endl;
+    return nullptr; 
+    }
+    for (size_t i = 0; i < adjacencyLists.size(); i++)
+    {
+        if (adjacencyLists[i].first->getID() == ID)
+            return adjacencyLists[i].first;
+    }
+    return nullptr;
+}
+
+
 bool socialGraph::TwoUserItsFriend(User* user1, User* user2){
     for (size_t i = 0; i < this->adjacencyLists.size(); i++)
     {
@@ -72,66 +91,123 @@ bool socialGraph::TwoUserItsFriend(User* user1, User* user2){
     return false;                                                               //таких польхователей значит вообще нет
 }
 
-void socialGraph::friendBFS_Gr(){
+
+// предоставить  список друзей
+std::vector<User*> socialGraph::getUserFriends(User* user){
     if (this->adjacencyLists.size() == 0){
-        std::cout << "Граф пустой" << std::endl;
-        return; 
-    }
-    std::vector<std::pair<User*, User*>> friendPairs; // вектор пар друзей 3 уровня
-    Queue queue; // очередь для обхода в ширину
-    int HandsomeCount = 0; // счетчик рукопожатий
-    //запускаем обход в ширину проверяя 1, 2, 3 уровень друзей и добавляя их в friendPairs если их там нету
-    for (size_t i = 1; i < this->adjacencyLists.size(); i++){
-        queue.enQueue(this->adjacencyLists[0].first); // добавляем в очередь юзера
-        while (queue.peek() != nullptr) // пока очередь не пуста
+        std::cout << "Пользователь не существует" << std::endl;
+        return {}; 
+        }
+        for (size_t i = 0; i < adjacencyLists.size(); i++)
         {
-            User* user = queue.peek(); // получаем первого юзера из очереди
-            queue.deQueue(); // удаляем его из очереди
-            HandsomeCount++; // увеличиваем счетчик рукопожатий
-            //Добавляем всех друзей в очередь и в вектор пар друзей
-            for (size_t j = 0; j < this->adjacencyLists.size(); j++)
-            {
-                for (size_t k = 0; k < this->adjacencyLists[j].second.size(); k++)
-                {
-                    if (this->adjacencyLists[j].second[k] != nullptr) // если друг не пустой
-                    {
-                        queue.enQueue(this->adjacencyLists[j].second[k]); // добавляем его в очередь
-                        // проверяем есть ли пара друзей в векторе пар друзей
+            if (adjacencyLists[i].first == user)
+                return adjacencyLists[i].second;
+        }
+        return {};
+
+}
+
+
+void socialGraph::friendBFS_Gr() {
+    // граф пустой?
+    if (adjacencyLists.empty()) {
+        std::cout << "Граф пустой\n";
+        return;
+    }
+
+    std::vector<std::pair<User*, User*>> friendPairs; // вектор пар друзей 3 уровня
+
+    // Для каждого пользователя в графе запускаем отдельный BFS
+    for (size_t idx = 0; idx < adjacencyLists.size(); ++idx) {
+        User* start = adjacencyLists[idx].first;
+        if (!start) continue;   // на всякий случай
+
+        // -------- Инициализация BFS -------
+
+        // Очередь для обхода в ширину. В каждом узле храним
+        // и указатель на User, и глубину level (сколько рукопожатий)
+        // Новая очередь и новый visited для каждого старта
+        Queue queue;
+        // Массив посещённых, чтобы не возвращаться в уже пройденные вершины
+        std::vector<User*> visited;
+
+        // Кладём в очередь начального пользователя на уровне 0 (рукопожатие = 0)
+        queue.enQueue(start, 0);
+
+        // цикл BFS пока есть в очереди вершины (пользователи)
+        // и пока не достигли 3-го уровня
+        while (!queue.isEmpty()) {
+            // Берем юзера его уровень из начала очереди (не удаляя сразу)
+            auto* node       = queue.peek();
+            User*  user      = node->user;         
+            int    userLevel = node->level;
+            // убираем первого пользователя из очереди — сейчас обрабатываем
+            queue.deQueue();
+
+            // Пользователь уже был посещён? пропускаем
+            bool already = false;
+            // Перебираем всех посещённых пользователей и если нашли пропускаем все
+            for (auto* v : visited) 
+                if (v == user) { already = true; break; }
+            if (already) continue;
+            // Отмечаем как посещённый
+            visited.push_back(user);
+
+            // Получаем всех друзей (соседей) текущего узла
+            std::vector<User*>  friendList = getUserFriends(user);
+
+            // Перебираем каждого друга
+            for (User* friendUser : friendList) {
+                if (!friendUser) continue;
+
+                // Если друг уже посещён то пропускаем
+                bool seen = false;
+                for (auto* v : visited) 
+                    if (v == friendUser) { seen = true; break; }
+                if (seen) continue;
+
+                // Если мы ещё не дошли до уровня 3, можно пойти дальше
+                if (userLevel < 3) {
+                     // Кладём в очередь друга с уровнем +1
+                    queue.enQueue(friendUser, userLevel + 1);
+
+                    // на каком кол-ве рукопожатий оказался друг
+                    int nextLevel = userLevel + 1;
+                    
+                    // добавляем только для 1 - 3 уровней 0 - это пользователь от которого идёт рукопожатие
+                    // меняя условие nextLevel >= 1 && nextLevel <= 3 регулируем отдаленность
+                    if (nextLevel >= 1 && nextLevel <= 3) {
+                        // проверка дубликатов (не добавляли ли мы такую пару раньше)
                         bool found = false;
-                        for (size_t l = 0; l < friendPairs.size(); l++)
-                        {
-                            if ((friendPairs[l].first == user && friendPairs[l].second == this->adjacencyLists[j].second[k]) || 
-                                (friendPairs[l].first == this->adjacencyLists[j].second[k] && friendPairs[l].second == user))
-                            {
-                                found = true; // нашли пару друзей
+                        for (auto& pr : friendPairs) {
+                            // проверяем и first и second в паре, так может оказаться на любом месте
+                            if ((pr.first == start && pr.second == friendUser) ||
+                                (pr.first == friendUser && pr.second == start)) {
+                                found = true; 
                                 break;
                             }
                         }
-                        if (!found) // если не нашли, то добавляем пару друзей в вектор пар друзей
-                        {
-                            friendPairs.push_back({user, this->adjacencyLists[j].second[k]});
+                        // Если это новая пара и не сам с юзер то добавляем
+                        if (!found && start != friendUser) {
+                            // меняем порядок по ID (уникальный номер)
+                            if (start->getID() < friendUser->getID())
+                                friendPairs.emplace_back(start, friendUser);// добавляем пару
+                            else
+                                friendPairs.emplace_back(friendUser, start);// добавляем пару другой порядок
                         }
                     }
                 }
-                
-            }
-            // Проверяем количество рукопожатий
-            if (HandsomeCount == 3) // если 3 рукопожатия, то выходим из цикла
-            {
-                break;
             }
         }
-        HandsomeCount = 0; // обнуляем счетчик рукопожатий
     }
-    
 
-
-    
-    // Вывод всех пар со знакомством по рукопожатию 1 , 2, 3 
-    for (size_t i = 0; i < friendPairs.size(); i++)
-    {
-        std::cout << friendPairs[i].first->getName() << " -> " << friendPairs[i].second->getName() << std::endl;
+    // Вывод всех пар
+    for (auto& pr : friendPairs) {
+        std::cout << pr.first->getName()
+                  << " -> "
+                  << pr.second->getName()
+                  << std::endl;
     }
-    std::cout << "Всего пар со знакомством по рукопожатию 3: " << friendPairs.size() << std::endl;
-  
+    std::cout << "Всего пар друзей трех рукопожатий: "
+              << friendPairs.size() << std::endl;
 }
